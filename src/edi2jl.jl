@@ -4,7 +4,10 @@ mutable struct Link
     library::Ptr{Cvoid}
     has_ineq::Union{Bool, Nothing}
     Nineq::Union{Cint, Nothing}
+    oldfunc::Union{Nothing, Array{ComplexF64, 1}}
     dim_hloc::Cint
+    whichiter::Int
+    gooditer::Int
 end
 
 function Link(libpath::String)
@@ -12,7 +15,7 @@ function Link(libpath::String)
         Libdl.dlopen(libpath)
     catch e
         println("Cannot init Link class: invalid library: ", e)
-        return Link(C_NULL, nothing)
+        return Link(lib, nothing, nothing ,nothing,0,0,0)
     end
 
     has_ineq_ptr = try
@@ -22,7 +25,7 @@ function Link(libpath::String)
     end
 
     has_ineq = isnothing(has_ineq_ptr) ? nothing : Bool(unsafe_load(Ptr{Cint}(has_ineq_ptr)))
-    return Link(lib, has_ineq, nothing ,0)
+    return Link(lib, has_ineq, nothing ,nothing,0,0,0)
 end
 
 function get_variable_ptr(obj::Link, varname::String)
@@ -97,22 +100,48 @@ include("func_aux_funx.jl")
 include("func_main.jl")
 include("func_bath.jl")
 include("func_io.jl")
+include("func_fit.jl")
 
+function dens_bethe(x, d)
+    root = sqrt(Complex(1 - (x / d)^2))
+    dens_bethe = (2 / (π * d)) * root
+    return real(dens_bethe)
+end
 
-
-println(global_env.Nspin)
-
+# Script
+wmixing = 0.3
+wband = 1.0
 read_input(global_env, "inputED.conf")
-hloc = rand(ComplexF64, 1, 1, 1, 1)
-println(global_env.Nspin)
-global_env.Nspin=1
-global_env.Norb=1
+
+Eband = range(-wband, wband, length=global_env.Lmats)
+de = step(Eband)
+Dband = dens_bethe.(Eband, wband)
+wm = pi / 1000 .* (2 .* (0:(global_env.Lmats - 1)) .+ 1)
+
+#this will need to be added to the routines above...
+aaaa = get_variable_ptr(global_env, "beta")
+beta = unsafe_load(Ptr{Cdouble}(aaaa))
+aaaa = get_variable_ptr(global_env, "dmft_error")
+dmft_error = unsafe_load(Ptr{Cdouble}(aaaa))
+
+
+hloc = zeros(ComplexF64, 1, 1, 1, 1)
+Gmats = zeros(ComplexF64, 1, 1, 1, 1,global_env.Lmats)
+Delta = zeros(ComplexF64, 1, 1, 1, 1,global_env.Lmats)
 println(global_env.Nspin)
 
 set_hloc(global_env, hloc)
 bath = init_solver(global_env)
 solve(global_env, bath)
-g = get_gimp(global_env; axis="m")
+gimp = get_gimp(global_env; axis="m")
 smats = get_sigma(global_env; axis="m")
+
+zeta = wm * im .- smats[1, 1, 1, 1, :]
+
+Gmats[1, 1, 1, 1, :] .= sum(Dband ./ (zeta .- Eband'), dims=2) .* de
+Delta[1,1,1,1,:] .= 0.25 * wband * Gmats[1,1,1,1,:]
+
+
+bath = chi2_fitgf(global_env,Delta,bath)
 
 
