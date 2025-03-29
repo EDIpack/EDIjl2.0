@@ -4,6 +4,7 @@ mutable struct Link
     library::Ptr{Cvoid}
     has_ineq::Union{Bool, Nothing}
     Nineq::Union{Cint, Nothing}
+    dim_hloc::Cint
 end
 
 function Link(libpath::String)
@@ -21,7 +22,7 @@ function Link(libpath::String)
     end
 
     has_ineq = isnothing(has_ineq_ptr) ? nothing : Bool(unsafe_load(Ptr{Cint}(has_ineq_ptr)))
-    return Link(lib, has_ineq, 0)
+    return Link(lib, has_ineq, nothing ,0)
 end
 
 function get_variable_ptr(obj::Link, varname::String)
@@ -95,6 +96,8 @@ include("func_read_input.jl")
 include("func_aux_funx.jl")
 include("func_main.jl")
 include("func_bath.jl")
+include("func_io.jl")
+
 
 
 println(global_env.Nspin)
@@ -109,4 +112,7 @@ println(global_env.Nspin)
 set_hloc(global_env, hloc)
 bath = init_solver(global_env)
 solve(global_env, bath)
+g = get_gimp(global_env; axis="m")
+smats = get_sigma(global_env; axis="m")
+
 

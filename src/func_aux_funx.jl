@@ -16,6 +16,7 @@ function set_hloc(link::Link, hloc::Array{ComplexF64}, Nlat::Union{Int, Nothing}
     # Ensure the array is Fortran-ordered
     hloc = copy(hloc)  # Julia uses column-major order, so this should be fine
     dim_hloc = collect(Int, size(hloc))
+    link.dim_hloc = Cint(length(dim_hloc))
 
     if Nlat !== nothing
         if link.has_ineq
