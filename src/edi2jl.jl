@@ -123,12 +123,11 @@ aaaa = get_variable_ptr(global_env, "beta")
 beta = unsafe_load(Ptr{Cdouble}(aaaa))
 aaaa = get_variable_ptr(global_env, "dmft_error")
 dmft_error = unsafe_load(Ptr{Cdouble}(aaaa))
-
+#####################################################
 
 hloc = zeros(ComplexF64, 1, 1, 1, 1)
 Gmats = zeros(ComplexF64, 1, 1, 1, 1,global_env.Lmats)
 Delta = zeros(ComplexF64, 1, 1, 1, 1,global_env.Lmats)
-println(global_env.Nspin)
 
 set_hloc(global_env, hloc)
 bath = init_solver(global_env)
