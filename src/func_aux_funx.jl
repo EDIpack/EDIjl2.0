@@ -58,4 +58,32 @@ function search_variable(link::Link, var::Float64, ntmp::Float64, converged::Boo
 end
 
 
+function check_convergence(arr1::AbstractArray, arr2::AbstractArray; threshold::Float64=0.00001)
+    # Ensure both arrays have the same shape
+    if size(arr1) != size(arr2)
+        throw(ArgumentError("Arrays must have the same size"))
+    end
 
+    # Get the number of dimensions (ndim) of the arrays
+    dims = ndims(arr1)
+
+    # Check if both arrays have the same number of dimensions
+    if dims != ndims(arr2)
+        throw(ArgumentError("Arrays must have the same number of dimensions"))
+    end
+
+    # Compute the absolute difference between arr1 and arr2
+    denominator = sum(abs.(arr1), dims=dims)
+    diff = abs.(arr1 .- arr2)
+
+    # Sum along the last dimension to reduce to a (d-1)-dimensional array
+    reduced_diff = sum(diff, dims=dims)  # This reduces along the last dimension
+    result = maximum(reduced_diff ./ denominator)
+
+    println( "Error = ",result)
+
+    # Check if the result is less than the threshold
+    is_below_threshold = all(result .< threshold)
+
+    return result, is_below_threshold
+end

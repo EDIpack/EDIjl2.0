@@ -4,10 +4,7 @@ mutable struct Link
     library::Ptr{Cvoid}
     has_ineq::Union{Bool, Nothing}
     Nineq::Union{Cint, Nothing}
-    oldfunc::Union{Nothing, Array{ComplexF64, 1}}
     dim_hloc::Cint
-    whichiter::Int
-    gooditer::Int
 end
 
 function Link(libpath::String)
@@ -15,7 +12,7 @@ function Link(libpath::String)
         Libdl.dlopen(libpath)
     catch e
         println("Cannot init Link class: invalid library: ", e)
-        return Link(lib, nothing, nothing ,nothing,0,0,0)
+        return Link(lib, nothing, nothing ,0)
     end
 
     has_ineq_ptr = try
@@ -25,7 +22,7 @@ function Link(libpath::String)
     end
 
     has_ineq = isnothing(has_ineq_ptr) ? nothing : Bool(unsafe_load(Ptr{Cint}(has_ineq_ptr)))
-    return Link(lib, has_ineq, nothing ,nothing,0,0,0)
+    return Link(lib, has_ineq, nothing ,0)
 end
 
 function get_variable_ptr(obj::Link, varname::String)
@@ -127,20 +124,43 @@ dmft_error = unsafe_load(Ptr{Cdouble}(aaaa))
 
 hloc = zeros(ComplexF64, 1, 1, 1, 1)
 Gmats = zeros(ComplexF64, 1, 1, 1, 1,global_env.Lmats)
+Gmats_old = zeros(size(Gmats))
 Delta = zeros(ComplexF64, 1, 1, 1, 1,global_env.Lmats)
 
 set_hloc(global_env, hloc)
 bath = init_solver(global_env)
-solve(global_env, bath)
-gimp = get_gimp(global_env; axis="m")
-smats = get_sigma(global_env; axis="m")
+bath_new = bath
 
-zeta = wm * im .- smats[1, 1, 1, 1, :]
+for iloop in 0:100
+  
+  if iloop < 1
+    converged = false
+    global bath_new = bath
+  end
+  
+  bath_old = copy(bath_new)
+  
+  solve(global_env, bath_new)
+  gimp = get_gimp(global_env; axis="m")
+  smats = get_sigma(global_env; axis="m")
 
-Gmats[1, 1, 1, 1, :] .= sum(Dband ./ (zeta .- Eband'), dims=2) .* de
-Delta[1,1,1,1,:] .= 0.25 * wband * Gmats[1,1,1,1,:]
+  zeta = wm * im .- smats[1, 1, 1, 1, :]
+
+  Gmats[1, 1, 1, 1, :] .= sum(Dband ./ (zeta .- Eband'), dims=2) .* de
+  Delta[1,1,1,1,:] .= 0.25 * wband * Gmats[1,1,1,1,:]
 
 
-bath = chi2_fitgf(global_env,Delta,bath)
-
+  bath_new = chi2_fitgf(global_env,Delta,bath_new)
+  if iloop > 0
+    result, converged = check_convergence(Gmats, Gmats_old)
+    bath_new = 0.3.*bath_new + (1.0-0.3).*bath_old
+  end
+  
+  global Gmats_old = copy(Gmats)
+  
+  if converged
+    break
+  end
+  
+end
 
