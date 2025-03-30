@@ -101,7 +101,7 @@ include("func_fit.jl")
 
 function dens_bethe(x, d)
     root = sqrt(Complex(1 - (x / d)^2))
-    dens_bethe = (2 / (π * d)) * root
+    dens_bethe = (2 / (pi * d)) * root
     return real(dens_bethe)
 end
 
@@ -110,17 +110,18 @@ wmixing = 0.3
 wband = 1.0
 read_input(global_env, "inputED.conf")
 
-Eband = range(-wband, wband, length=global_env.Lmats)
-de = step(Eband)
-Dband = dens_bethe.(Eband, wband)
-wm = pi / 1000 .* (2 .* (0:(global_env.Lmats - 1)) .+ 1)
-
 #this will need to be added to the routines above...
 aaaa = get_variable_ptr(global_env, "beta")
 beta = unsafe_load(Ptr{Cdouble}(aaaa))
 aaaa = get_variable_ptr(global_env, "dmft_error")
 dmft_error = unsafe_load(Ptr{Cdouble}(aaaa))
 #####################################################
+
+Eband = range(-wband, wband, length=global_env.Lmats)
+de = step(Eband)
+Dband = dens_bethe.(Eband, wband)
+wm = (pi / beta) .* (2 .* (0:(global_env.Lmats - 1)) .+ 1)
+
 
 hloc = zeros(ComplexF64, 1, 1, 1, 1)
 Gmats = zeros(ComplexF64, 1, 1, 1, 1,global_env.Lmats)
@@ -131,7 +132,7 @@ set_hloc(global_env, hloc)
 bath = init_solver(global_env)
 bath_new = bath
 
-for iloop in 0:100
+for iloop in 0:0
   
   if iloop < 1
     converged = false
