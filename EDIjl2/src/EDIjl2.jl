@@ -20,7 +20,7 @@ module EDIjl2
   )
 
 
-  function InitLink(libpath::String)
+  function InitEDIjl(libpath::String)
       lib = try
           Libdl.dlopen(libpath)
       catch e
@@ -148,6 +148,7 @@ module EDIjl2
       for path in split(join(search_paths, ":"), ":")
           libpath = joinpath(path, libname)
           if isfile(libpath)
+              println("EDIpack2 library found at ", libpath)
               return libpath
           end
       end
@@ -166,7 +167,7 @@ module EDIjl2
 
   # Create a dynamic export statement
   export find_EDIpack, 
-         InitLink,
+         InitEDIjl,
          read_input,
          set_hloc,
          init_solver,

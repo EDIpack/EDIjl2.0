@@ -14,7 +14,7 @@ wmixing = 0.3
 wband = 1.0
 
 libpath = find_EDIpack()
-EDIsolver = InitLink(libpath)
+EDIsolver = InitEDIjl(libpath)
 read_input(EDIsolver,"inputED.conf")
 
 #####################################################
