@@ -1,4 +1,5 @@
 using Libdl
+using DelimitedFiles
 
 mutable struct Link
     library::Ptr{Cvoid}
@@ -117,7 +118,7 @@ aaaa = get_variable_ptr(global_env, "dmft_error")
 dmft_error = unsafe_load(Ptr{Cdouble}(aaaa))
 #####################################################
 
-Eband = range(-wband, wband, length=global_env.Lmats)
+Eband = range(-wband, wband, length=1000)
 de = step(Eband)
 Dband = dens_bethe.(Eband, wband)
 wm = (pi / beta) .* (2 .* (0:(global_env.Lmats - 1)) .+ 1)
@@ -130,31 +131,32 @@ Delta = zeros(ComplexF64, 1, 1, 1, 1,global_env.Lmats)
 
 set_hloc(global_env, hloc)
 bath = init_solver(global_env)
-bath_new = bath
 
-for iloop in 0:0
+for iloop in 0:100
   
   if iloop < 1
     converged = false
-    global bath_new = bath
   end
   
-  bath_old = copy(bath_new)
+  bath_old = copy(bath)
   
-  solve(global_env, bath_new)
+  solve(global_env, bath)
   gimp = get_gimp(global_env; axis="m")
   smats = get_sigma(global_env; axis="m")
 
   zeta = wm * im .- smats[1, 1, 1, 1, :]
 
-  Gmats[1, 1, 1, 1, :] .= sum(Dband ./ (zeta .- Eband'), dims=2) .* de
+  Gmats[1,1,1,1,:] .= sum(Dband' ./ (zeta .- Eband'), dims=2) .* de
   Delta[1,1,1,1,:] .= 0.25 * wband * Gmats[1,1,1,1,:]
 
+  writedlm("Delta_iw.dat", [wm imag.(Delta[1,1,1,1,:]) real.(Delta[1,1,1,1,:])])
 
-  bath_new = chi2_fitgf(global_env,Delta,bath_new)
+  bath_old = copy(bath)
+  global bath = chi2_fitgf(global_env,Delta,bath_old)
+
   if iloop > 0
     result, converged = check_convergence(Gmats, Gmats_old)
-    bath_new = 0.3.*bath_new + (1.0-0.3).*bath_old
+    global bath = 0.3.*bath + (1.0-0.3).*bath_old
   end
   
   global Gmats_old = copy(Gmats)

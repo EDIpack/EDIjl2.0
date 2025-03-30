@@ -2,7 +2,7 @@ using Libdl
 
 
 
-function init_solver(link::Link, bath::Union{Nothing, Array{Float64, 2}, Array{Float64, 1}}=nothing, Nb::Union{Nothing, Int}=nothing, Nlat::Union{Nothing, Int}=nothing)
+function init_solver(link::Link; bath::Union{Nothing, Array{Float64, 2}, Array{Float64, 1}}=nothing, Nb::Union{Nothing, Int}=nothing, Nlat::Union{Nothing, Int}=nothing)
     if isnothing(bath)
         if isnothing(Nb) && isnothing(Nlat)
             Nb = ccall(dlsym(link.library, :get_bath_dimension), Int, ())
