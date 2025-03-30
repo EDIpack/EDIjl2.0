@@ -1,7 +1,6 @@
 module EDIjl2
 
   using Libdl
-  using DelimitedFiles
 
   mutable struct Link
       library::Ptr{Cvoid}

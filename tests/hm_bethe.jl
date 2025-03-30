@@ -1,6 +1,7 @@
 push!(LOAD_PATH, joinpath(@__DIR__, "../EDIjl2/src"))
-using EDIjl2
+
 using DelimitedFiles
+using EDIjl2
 
 function dens_bethe(x, d)
     root = sqrt(Complex(1 - (x / d)^2))

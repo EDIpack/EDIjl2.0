@@ -1,7 +1,6 @@
 using Libdl
 
 
-
 function init_solver(link::Link; bath::Union{Nothing, Array{Float64, 2}, Array{Float64, 1}}=nothing, Nb::Union{Nothing, Int}=nothing, Nlat::Union{Nothing, Int}=nothing)
     
     init_solver_site = Libdl.dlsym(link.library, "init_solver_site")
