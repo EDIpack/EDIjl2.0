@@ -163,7 +163,6 @@ module EDIjl2
   include(joinpath(@__DIR__, "func_io.jl"))
   include(joinpath(@__DIR__, "func_fit.jl"))
 
-  functions = names(Main)
 
   # Create a dynamic export statement
   export find_EDIpack, 
