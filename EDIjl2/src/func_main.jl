@@ -1,7 +1,7 @@
 using Libdl
 
 
-function init_solver(link::Link; bath::Union{Nothing, Array{Float64, 2}, Array{Float64, 1}}=nothing, Nb::Union{Nothing, Int}=nothing, Nlat::Union{Nothing, Int}=nothing)
+function init_solver(;bath::Union{Nothing, Array{Float64, 2}, Array{Float64, 1}}=nothing, Nb::Union{Nothing, Int}=nothing, Nlat::Union{Nothing, Int}=nothing, link::Link=global_env)
     
     init_solver_site = Libdl.dlsym(link.library, "init_solver_site")
     init_solver_ineq = Libdl.dlsym(link.library, "init_solver_ineq")
@@ -50,7 +50,7 @@ function init_solver(link::Link; bath::Union{Nothing, Array{Float64, 2}, Array{F
 end
 
 
-function solve(link::Link, bath::Array{Float64}, flag_gf::Bool=true, flag_mpi::Bool=true, mpi_lanc::Bool=false)
+function solve(bath::Array{Float64}; flag_gf::Bool=true, flag_mpi::Bool=true, mpi_lanc::Bool=false, link::Link=global_env)
     solve_site = Libdl.dlsym(link.library, "solve_site")
     solve_ineq = Libdl.dlsym(link.library, "solve_ineq")
 

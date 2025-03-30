@@ -2,7 +2,7 @@ using Libdl
 using Base.Threads
 
 
-function get_gimp(link::Link; ilat::Union{Int, Nothing}=nothing, ishape::Union{Int, Nothing}=nothing, axis::String="m", typ::String="n",  zeta::Union{Array{ComplexF64}, Nothing}=nothing)
+function get_gimp(; ilat::Union{Int, Nothing}=nothing, ishape::Union{Int, Nothing}=nothing, axis::String="m", typ::String="n",  zeta::Union{Array{ComplexF64}, Nothing}=nothing, link::Link=global_env)
 
     # Get function pointers
     ed_get_gimp_site_n3 = Libdl.dlsym(link.library, "get_gimp_site_n3")
@@ -101,7 +101,7 @@ using Libdl
 using Base.Threads
 
 
-function get_sigma(link::Link; ilat::Union{Int, Nothing}=nothing, ishape::Union{Int, Nothing}=nothing, axis::String="m", typ::String="n",  zeta::Union{Array{ComplexF64}, Nothing}=nothing)
+function get_sigma(; ilat::Union{Int, Nothing}=nothing, ishape::Union{Int, Nothing}=nothing, axis::String="m", typ::String="n",  zeta::Union{Array{ComplexF64}, Nothing}=nothing, link::Link=global_env)
 
     # Get function pointers
     ed_get_sigma_site_n3 = Libdl.dlsym(link.library, "get_sigma_site_n3")

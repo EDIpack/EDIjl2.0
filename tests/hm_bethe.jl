@@ -13,24 +13,25 @@ end
 wmixing = 0.3
 wband = 1.0
 
-libpath = find_EDIpack()
-EDIsolver = InitEDIjl(libpath)
-read_input(EDIsolver,"inputED.conf")
+#global variables
+ed = EDIjl2.global_env
+
+EDIjl2.read_input("inputED.conf")
 
 #####################################################
 
 Eband = range(-wband, wband, length=1000)
 de = step(Eband)
 Dband = dens_bethe.(Eband, wband)
-wm = (pi / EDIsolver.beta) .* (2 .* (0:(EDIsolver.Lmats - 1)) .+ 1)
+wm = (pi / ed.beta) .* (2 .* (0:(ed.Lmats - 1)) .+ 1)
 
 
 hloc = zeros(ComplexF64, 1, 1, 1, 1)
-Gmats = zeros(ComplexF64, 1, 1, 1, 1,EDIsolver.Lmats)
-Delta = zeros(ComplexF64, 1, 1, 1, 1,EDIsolver.Lmats)
+Gmats = zeros(ComplexF64, 1, 1, 1, 1,ed.Lmats)
+Delta = zeros(ComplexF64, 1, 1, 1, 1,ed.Lmats)
 
-set_hloc(EDIsolver, hloc)
-global bath = init_solver(EDIsolver)
+EDIjl2.set_hloc(hloc)
+global bath = EDIjl2.init_solver()
 
 for iloop in 0:100
 
@@ -38,9 +39,9 @@ for iloop in 0:100
   
   bath_old = copy(bath)
   
-  solve(EDIsolver, bath)
-  gimp = get_gimp(EDIsolver; axis="m")
-  smats = get_sigma(EDIsolver; axis="m")
+  EDIjl2.solve(bath)
+  gimp = EDIjl2.get_gimp(axis="m")
+  smats = EDIjl2.get_sigma(axis="m")
 
   zeta = wm * im .- smats[1, 1, 1, 1, :]
 
@@ -50,9 +51,9 @@ for iloop in 0:100
   writedlm("Delta_iw.dat", [wm imag.(Delta[1,1,1,1,:]) real.(Delta[1,1,1,1,:])])
 
   bath_old = copy(bath)
-  global bath = chi2_fitgf(EDIsolver,Delta,bath_old)
+  global bath = EDIjl2.chi2_fitgf(Delta,bath_old)
 
-  result, converged = check_convergence(Gmats)
+  result, converged = EDIjl2.check_convergence(Gmats)
   global bath = 0.3.*bath + (1.0-0.3).*bath_old
   
   

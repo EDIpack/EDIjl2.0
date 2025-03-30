@@ -163,18 +163,12 @@ module EDIjl2
   include(joinpath(@__DIR__, "func_io.jl"))
   include(joinpath(@__DIR__, "func_fit.jl"))
 
+  global global_env
 
-  # Create a dynamic export statement
-  export find_EDIpack, 
-         InitEDIjl,
-         read_input,
-         set_hloc,
-         init_solver,
-         solve,
-         get_gimp,
-         get_sigma,
-         chi2_fitgf,
-         check_convergence
+  function __init__()
+    libpath = find_EDIpack()
+    global global_env = InitEDIjl(libpath)
+  end
 
 end
 

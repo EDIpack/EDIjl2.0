@@ -1,7 +1,7 @@
 using Libdl
 using Base.Threads
 
-function chi2_fitgf(link::Link, args...; ispin=1, iorb=nothing, fmpi=true)
+function chi2_fitgf(args...; ispin=1, iorb=nothing, fmpi=true, link::Link=global_env)
     """
     Fits the Weiss field or Hybridization function with a discrete set of levels.
     """

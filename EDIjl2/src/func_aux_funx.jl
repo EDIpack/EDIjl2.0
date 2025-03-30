@@ -10,7 +10,7 @@ const RED = "\033[91m"
 const COLOREND = "\033[0m"
 
 
-function set_hloc(link::Link, hloc::Array{ComplexF64}, Nlat::Union{Int, Nothing}=nothing)
+function set_hloc(hloc::Array{ComplexF64}; Nlat::Union{Int, Nothing}=nothing, link::Link=global_env)
     # Get function pointers
     ed_set_Hloc_single_N2 = Libdl.dlsym(link.library, "ed_set_Hloc_single_N2")
     ed_set_Hloc_single_N4 = Libdl.dlsym(link.library, "ed_set_Hloc_single_N4")
@@ -51,7 +51,7 @@ function set_hloc(link::Link, hloc::Array{ComplexF64}, Nlat::Union{Int, Nothing}
     end
 end
 
-function search_variable(link::Link, var::Float64, ntmp::Float64, converged::Bool)
+function search_variable(var::Float64, ntmp::Float64, converged::Bool; link::Link=global_env)
     search_variable_wrap = Libdl.dlsym(link.library, :search_variable)
 
     var_arr = [var]
@@ -76,7 +76,7 @@ const RED = "\033[91m"
 const COLOREND = "\033[0m"
 
 
-function check_convergence(arr1::AbstractArray; threshold::Float64=0.00001, N1::Int=2, N2::Int=100)
+function check_convergence(arr1::AbstractArray; threshold::Float64=0.00001, N1::Int=2, N2::Int=100, link::Link=global_env)
     global arr_old, gooditer, whichiter
 
     # If arr_old does not exist, initialize it

@@ -2,7 +2,7 @@ using Libdl
 
 
 
-function get_bath_dimension(link::Link)
+function get_bath_dimension(;link::Link=global_env)
     """
     This function returns the correct dimension for the bath to be allocated \
     (for each impurity) given the parameters of the system.

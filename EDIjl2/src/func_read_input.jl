@@ -2,7 +2,7 @@ using Libdl
 
 
 
-function read_input(link::Link, input_string::String)
+function read_input(input_string::String;link::Link=global_env)
     """
     This function reads from the input file of EDIpack2. If the file does not
     exist, a template file is generated with default parameters.
