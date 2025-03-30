@@ -8,7 +8,18 @@ mutable struct Link
     dim_hloc::Cint
 end
 
-function Link(libpath::String)
+const var_types = Dict(
+    "Uloc" => [Cdouble,5],    # Array of float
+    "beta" => [Cdouble,1],    # Scalar float
+    "Norb" => [Cint,1],       # Scalar int
+    "Nspin" => [Cint,1],      # Scalar int
+    "Lmats" => [Cint,1],      # Scalar int
+    "Lreal" => [Cint,1],      # Scalar int
+    "dmft_error" => [Cint,1]  
+)
+
+
+function InitLink(libpath::String)
     lib = try
         Libdl.dlopen(libpath)
     catch e
@@ -26,29 +37,81 @@ function Link(libpath::String)
     return Link(lib, has_ineq, nothing ,0)
 end
 
+# Function to get a variable's pointer from the shared library
 function get_variable_ptr(obj::Link, varname::String)
     try
-        return Libdl.dlsym(obj.library, varname)
+        ptr = Libdl.dlsym(obj.library, varname)
+        if ptr == nothing
+            error("Symbol $varname not found in library!")
+        end
+        return ptr
     catch
         error("Variable $varname not found in library")
     end
 end
 
-function get_variable(obj::Link, name::Symbol, ctype)
-    ptr = get_variable_ptr(obj, String(name))
-    return unsafe_load(Ptr{ctype}(ptr))
+# General get_variable function to handle any type based on the dictionary
+function get_variable(obj::Link, name::Symbol)
+    varname = String(name)
+    
+    # Look up the type from the dictionary
+    if haskey(var_types, varname)
+        ctype = var_types[varname][1]
+        dimension = var_types[varname][2]
+    else
+        error("Unknown variable type for $varname")
+    end
+
+    ptr = get_variable_ptr(obj, varname)
+    if ptr == nothing
+        error("Failed to retrieve pointer for $varname")
+    end
+
+    # Retrieve the variable value based on its type
+    if dimension == 1
+      return unsafe_load(Ptr{ctype}(ptr))
+    else
+      return unsafe_wrap(Array, Base.unsafe_convert(Ptr{ctype}, ptr), dimension)
+    end
 end
 
-function set_variable(obj::Link, name::Symbol, ctype, val)
-    ptr = get_variable_ptr(obj, String(name))
-    unsafe_store!(Ptr{ctype}(ptr), val)
+# General set_variable function to handle any type based on the dictionary
+function set_variable(obj::Link, name::Symbol, val)
+    varname = String(name)
+    
+    # Look up the type from the dictionary
+    if haskey(var_types, varname)
+        ctype = var_types[varname][1]
+        dimension = var_types[varname][2]
+    else
+        error("Unknown variable type for $varname")
+    end
+
+    ptr = get_variable_ptr(obj, varname)
+    if ptr == nothing
+        error("Failed to retrieve pointer for $varname")
+    end
+
+    # Set the variable value based on its type
+    if dimension == 1
+      unsafe_store!(Ptr{ctype}(ptr), ctype(val))
+    else  # Array
+      for (i, comp) in enumerate(val)
+          if i <= dimension
+              unsafe_store!(Ptr{ctype}(ptr) + (i - 1)*sizeof(ctype), ctype(comp))
+          end        
+      end
+    end
 end
 
+
+# Accessing properties based on the dictionary
 function Base.getproperty(obj::Link, name::Symbol)
     if name in fieldnames(Link)
         return getfield(obj, name)
     else
-        return get_variable(obj, name, Cint)  # Change `Cint` to the correct type as needed
+        # Use the dictionary to handle types dynamically
+        return get_variable(obj, name)
     end
 end
 
@@ -56,7 +119,8 @@ function Base.setproperty!(obj::Link, name::Symbol, val)
     if name in fieldnames(Link)
         setfield!(obj, name, val)
     else
-        set_variable(obj, name, Cint, val)  # Change `Cint` to the correct type as needed
+        # Use the dictionary to handle types dynamically
+        set_variable(obj, name, val)
     end
 end
 
@@ -91,7 +155,7 @@ end
 
 # Initialize global environment
 libpath = find_library()
-global_env = Link(libpath)
+global_env = InitLink(libpath)
 
 include("func_read_input.jl")
 include("func_aux_funx.jl")
@@ -111,17 +175,15 @@ wmixing = 0.3
 wband = 1.0
 read_input(global_env, "inputED.conf")
 
-#this will need to be added to the routines above...
-aaaa = get_variable_ptr(global_env, "beta")
-beta = unsafe_load(Ptr{Cdouble}(aaaa))
-aaaa = get_variable_ptr(global_env, "dmft_error")
-dmft_error = unsafe_load(Ptr{Cdouble}(aaaa))
+
 #####################################################
 
 Eband = range(-wband, wband, length=1000)
 de = step(Eband)
 Dband = dens_bethe.(Eband, wband)
-wm = (pi / beta) .* (2 .* (0:(global_env.Lmats - 1)) .+ 1)
+wm = (pi / global_env.beta) .* (2 .* (0:(global_env.Lmats - 1)) .+ 1)
+
+println(global_env.Nspin)
 
 
 hloc = zeros(ComplexF64, 1, 1, 1, 1)
@@ -151,7 +213,7 @@ for iloop in 0:100
   bath_old = copy(bath)
   global bath = chi2_fitgf(global_env,Delta,bath_old)
 
-  result, converged = check_convergence(Gmats;N1=2,N2=100)
+  result, converged = check_convergence(Gmats)
   global bath = 0.3.*bath + (1.0-0.3).*bath_old
   
   

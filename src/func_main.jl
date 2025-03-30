@@ -33,15 +33,14 @@ function init_solver(link::Link; bath::Union{Nothing, Array{Float64, 2}, Array{F
         end
     end
     
-    dim_bath = size(bath) |> x -> Cint.(collect(x))
-    dim_bath_ptr = pointer(dim_bath)
+    dim_bath = collect(Cint, size(bath))
     
     if length(dim_bath) < 2
-        ccall(init_solver_site, Cvoid, (Ptr{Float64}, Ptr{Cint}), bath, dim_bath_ptr)
+        ccall(init_solver_site, Cvoid, (Ptr{Float64}, Ptr{Cint}), bath, dim_bath)
         link.Nineq = Cint(0)
     else
         if link.has_ineq
-            ccall(init_solver_ineq, Cvoid, (Ptr{Float64}, Ptr{Int}), bath, dim_bath_ptr)
+            ccall(init_solver_ineq, Cvoid, (Ptr{Float64}, Ptr{Cint}), bath, dim_bath)
             link.Nineq = Cint(size(bath, 1))
         else
             error("Can't use r-DMFT routines without installing edipack2ineq")
@@ -56,7 +55,7 @@ function solve(link::Link, bath::Array{Float64}, flag_gf::Bool=true, flag_mpi::B
     solve_site = Libdl.dlsym(link.library, "solve_site")
     solve_ineq = Libdl.dlsym(link.library, "solve_ineq")
 
-    dim_bath = size(bath) |> collect .|> Int
+    dim_bath = collect(Cint, size(bath))
     
     if length(dim_bath) < 2
         ccall(solve_site, Nothing,
