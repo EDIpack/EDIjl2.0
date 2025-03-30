@@ -3,6 +3,10 @@ using Libdl
 
 
 function init_solver(link::Link; bath::Union{Nothing, Array{Float64, 2}, Array{Float64, 1}}=nothing, Nb::Union{Nothing, Int}=nothing, Nlat::Union{Nothing, Int}=nothing)
+    
+    init_solver_site = Libdl.dlsym(link.library, "init_solver_site")
+    init_solver_ineq = Libdl.dlsym(link.library, "init_solver_ineq")
+
     if isnothing(bath)
         if isnothing(Nb) && isnothing(Nlat)
             Nb = ccall(dlsym(link.library, :get_bath_dimension), Int, ())
@@ -33,11 +37,11 @@ function init_solver(link::Link; bath::Union{Nothing, Array{Float64, 2}, Array{F
     dim_bath_ptr = pointer(dim_bath)
     
     if length(dim_bath) < 2
-        ccall(dlsym(link.library, :init_solver_site), Cvoid, (Ptr{Float64}, Ptr{Cint}), bath, dim_bath_ptr)
+        ccall(init_solver_site, Cvoid, (Ptr{Float64}, Ptr{Cint}), bath, dim_bath_ptr)
         link.Nineq = Cint(0)
     else
         if link.has_ineq
-            ccall(dlsym(link.library, :init_solver_ineq), Cvoid, (Ptr{Float64}, Ptr{Int}), bath, dim_bath_ptr)
+            ccall(init_solver_ineq, Cvoid, (Ptr{Float64}, Ptr{Int}), bath, dim_bath_ptr)
             link.Nineq = Cint(size(bath, 1))
         else
             error("Can't use r-DMFT routines without installing edipack2ineq")
@@ -49,15 +53,18 @@ end
 
 
 function solve(link::Link, bath::Array{Float64}, flag_gf::Bool=true, flag_mpi::Bool=true, mpi_lanc::Bool=false)
+    solve_site = Libdl.dlsym(link.library, "solve_site")
+    solve_ineq = Libdl.dlsym(link.library, "solve_ineq")
+
     dim_bath = size(bath) |> collect .|> Int
     
     if length(dim_bath) < 2
-        ccall(dlsym(link.library, :solve_site), Nothing,
+        ccall(solve_site, Nothing,
               (Ptr{Float64}, Ptr{Int}, Cint, Cint),
               bath, dim_bath, flag_gf, flag_mpi)
     else
         if has_ineq
-            ccall(dlsym(link.library, :solve_ineq), Nothing,
+            ccall(solve_ineq, Nothing,
                   (Ptr{Float64}, Ptr{Int}, Cint, Cint),
                   bath, dim_bath, flag_gf, mpi_lanc)
         else
@@ -71,12 +78,15 @@ function finalize_solver(link::Link)
     Cleans up the ED environment, deallocates relevant arrays, 
     and allows for another call to `init_solver`.
     """
+    
+    finalize_solver = Libdl.dlsym(link.library, "finalize_solver")
+    
     if link.Nineq === nothing
         println("ED environment is not initialized yet")
         return
     end
 
-    ccall(dlsym(:finalize_solver, link.library), Cvoid, (Cint,), link.Nineq)
+    ccall(finalize_solver, Cvoid, (Cint,), link.Nineq)
     
     link.Nineq = nothing
     link.dim_hloc = 0

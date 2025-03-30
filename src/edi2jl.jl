@@ -126,17 +126,14 @@ wm = (pi / beta) .* (2 .* (0:(global_env.Lmats - 1)) .+ 1)
 
 hloc = zeros(ComplexF64, 1, 1, 1, 1)
 Gmats = zeros(ComplexF64, 1, 1, 1, 1,global_env.Lmats)
-Gmats_old = zeros(size(Gmats))
 Delta = zeros(ComplexF64, 1, 1, 1, 1,global_env.Lmats)
 
 set_hloc(global_env, hloc)
 bath = init_solver(global_env)
 
 for iloop in 0:100
-  
-  if iloop < 1
-    converged = false
-  end
+
+  converged = false  
   
   bath_old = copy(bath)
   
@@ -154,12 +151,9 @@ for iloop in 0:100
   bath_old = copy(bath)
   global bath = chi2_fitgf(global_env,Delta,bath_old)
 
-  if iloop > 0
-    result, converged = check_convergence(Gmats, Gmats_old)
-    global bath = 0.3.*bath + (1.0-0.3).*bath_old
-  end
+  result, converged = check_convergence(Gmats;N1=2,N2=100)
+  global bath = 0.3.*bath + (1.0-0.3).*bath_old
   
-  global Gmats_old = copy(Gmats)
   
   if converged
     break
