@@ -166,6 +166,7 @@ module EDIjl2
   global global_env
 
   function __init__()
+    sleep(1)
     libpath = find_EDIpack()
     global global_env = InitEDIjl(libpath)
   end
