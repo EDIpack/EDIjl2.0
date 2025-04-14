@@ -1,6 +1,21 @@
 # EDIjl2.0
-EDIpack julia API.
+EDIpack julia API (experimental).
 
-I know nothing about julia, so this is just a way to learn.
+Testing program solving the bethe lattice is provided in test folder
 
-Go into tests and run "julia hm_bethe.jl"
+Milestones:
+
+1: Porting
+ [x] Main module
+ [x] Bath functions
+ [x] Auxiliary functions
+ [] Fit functions
+ [] I/O functions
+ [] Solver functions
+ [x] Read input
+
+
+
+
+
+2:Testing

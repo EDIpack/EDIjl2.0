@@ -6,6 +6,7 @@ module EDIjl2
       library::Ptr{Cvoid}
       has_ineq::Union{Bool, Nothing}
       Nineq::Union{Cint, Nothing}
+      Nsym::Union{Cint, Nothing}
       dim_hloc::Cint
   end
 
@@ -35,7 +36,7 @@ module EDIjl2
       end
 
       has_ineq = isnothing(has_ineq_ptr) ? nothing : Bool(unsafe_load(Ptr{Cint}(has_ineq_ptr)))
-      return Link(lib, has_ineq, nothing ,0)
+      return Link(lib, has_ineq, nothing, nothing ,0)
   end
 
   # Function to get a variable's pointer from the shared library
