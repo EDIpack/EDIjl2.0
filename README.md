@@ -10,7 +10,7 @@ A testing program solving the Bethe lattice is provided in the `test` folder.
 - [x] Main module  
 - [x] Bath functions  
 - [x] Auxiliary functions  
-- [ ] Fit functions  
+- [x] Fit functions  
 - [ ] I/O functions  
 - [ ] Solver functions  
 - [x] Read input  
