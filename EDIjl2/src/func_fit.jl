@@ -75,11 +75,11 @@ function chi2_fitgf(args...; ispin=1, iorb=nothing, fmpi=true, link::Link=global
 
         if length(dim_bath) == 1  # single impurity
             if length(dim_g) == 3
-                ccall(fit_single_normal_n3, Cvoid,
+                ccall(fit_single_superc_n3, Cvoid,
                       (Ptr{ComplexF64}, Ptr{Cint}, Ptr{ComplexF64}, Ptr{Cint}, Ptr{Cdouble}, Ptr{Cint}, Cint, Cint, Bool),
                       g, dim_g, f, dim_f, bath_copy, dim_bath, ispin, iorb, fmpi)
             elseif length(dim_g) == 5
-                ccall(fit_single_normal_n5, Cvoid,
+                ccall(fit_single_superc_n5, Cvoid,
                       (Ptr{ComplexF64}, Ptr{Cint}, Ptr{ComplexF64}, Ptr{Cint}, Ptr{Cdouble}, Ptr{Cint}, Cint, Cint, Bool),
                       g, dim_g, f, dim_f, bath_copy, dim_bath, ispin, iorb, fmpi)
             else
@@ -88,15 +88,15 @@ function chi2_fitgf(args...; ispin=1, iorb=nothing, fmpi=true, link::Link=global
         elseif length(dim_bath) == 2              #lattice   
             if link.has_ineq
               if length(dim_g) == 3
-                  ccall(fit_single_normal_n3, Cvoid,
+                  ccall(fit_single_superc_n3, Cvoid,
                         (Ptr{ComplexF64}, Ptr{Cint}, Ptr{ComplexF64}, Ptr{Cint}, Ptr{Cdouble}, Ptr{Cint}, Cint, Cint, Bool),
                         g, dim_g, f, dim_f, bath_copy, dim_bath, ispin, iorb, fmpi)
               elseif length(dim_g) == 4
-                  ccall(fit_single_normal_n4, Cvoid,
+                  ccall(fit_single_superc_n4, Cvoid,
                         (Ptr{ComplexF64}, Ptr{Cint}, Ptr{ComplexF64}, Ptr{Cint}, Ptr{Cdouble}, Ptr{Cint}, Cint, Cint, Bool),
                         g, dim_g, f, dim_f, bath_copy, dim_bath, ispin, iorb, fmpi)
               elseif length(dim_g) == 6
-                  ccall(fit_single_normal_n6, Cvoid,
+                  ccall(fit_single_superc_n6, Cvoid,
                         (Ptr{ComplexF64}, Ptr{Cint}, Ptr{ComplexF64}, Ptr{Cint}, Ptr{Cdouble}, Ptr{Cint}, Cint, Cint, Bool),
                         g, dim_g, f, dim_f, bath_copy, dim_bath, ispin, iorb, fmpi)
               else
