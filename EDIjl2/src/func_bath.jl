@@ -107,7 +107,7 @@ function set_hgeneral(hvec::Array{ComplexF64}; lambdavec::Array{Float64}, link::
 end
 
 
-function break_symmetry_bath(bath::Array{Float64}, field::Float64, sign::Float64, save::Bool=true, link::Link=global_env)
+function break_symmetry_bath(bath::Array{Float64}, field::Float64, sign::Union{Float64, Array{Float64}}, save::Bool=true, link::Link=global_env)
 
   # Get function pointers
   break_symmetry_bath_site = Libdl.dlsym(link.library, "break_symmetry_bath_site")
@@ -129,7 +129,10 @@ function break_symmetry_bath(bath::Array{Float64}, field::Float64, sign::Float64
         ccall(break_symmetry_bath_site, Cvoid, (Ptr{ComplexF64}, Ptr{Int}, Float64, Float64, Cint), bath, bath_shape, field, sign, save_int)
       elseif length(dim_lambdavec) == 3
         if link.has_ineq
-          ccall(break_symmetry_bath_ineq, Cvoid, (Ptr{ComplexF64}, Ptr{Int}, Float64, Float64, Cint), bath, bath_shape, field, sign, save_int)
+          if sign isa Float64
+            sign = sign * ones(bath_shape[1])
+          end
+          ccall(break_symmetry_bath_ineq, Cvoid, (Ptr{ComplexF64}, Ptr{Int}, Float64, Ptr{Float64}, Cint), bath, bath_shape, field, sign, save_int)
         else
           error("Can't use r-DMFT routines without installing edipack2ineq")  
         end
