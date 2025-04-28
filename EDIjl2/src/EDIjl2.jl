@@ -156,7 +156,7 @@ module EDIjl2
       error("Library loading failed. Check installation of edipack2")
   end
 
-
+  include(joinpath(@__DIR__, "func_parse_umatrix.jl"))
   include(joinpath(@__DIR__, "func_read_input.jl"))
   include(joinpath(@__DIR__, "func_aux_funx.jl"))
   include(joinpath(@__DIR__, "func_main.jl"))

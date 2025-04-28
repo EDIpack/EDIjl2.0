@@ -40,6 +40,16 @@ for iloop in 0:100
   bath_old = copy(bath)
   
   EDIjl2.solve(bath)
+  
+  dens = EDIjl2.get_dens()
+  mag = EDIjl2.get_mag()
+  docc = EDIjl2.get_docc()
+  phisc = EDIjl2.get_phi()
+  println("Density = ", dens)
+  println("Magnetization = ", mag)
+  println("Double occupation = ", docc)
+  println("Superconductive phi = ", phisc)
+  
   gimp = EDIjl2.get_gimp(axis="m")
   smats = EDIjl2.get_sigma(axis="m")
 
