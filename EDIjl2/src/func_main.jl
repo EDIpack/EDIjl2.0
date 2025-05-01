@@ -71,23 +71,23 @@ function solve(bath::Array{Float64}; flag_gf::Bool=true, flag_mpi::Bool=true, mp
     end
 end
 
-function finalize_solver(link::Link)
+function finalize_solver(link::Link=global_env)
     """
     Cleans up the ED environment, deallocates relevant arrays, 
     and allows for another call to `init_solver`.
     """
     
-    finalize_solver = Libdl.dlsym(link.library, "finalize_solver")
+    finalize_solver_wrapper = Libdl.dlsym(link.library, "finalize_solver")
     
     if link.Nineq === nothing
         println("ED environment is not initialized yet")
         return
     end
 
-    ccall(finalize_solver, Cvoid, (Cint,), link.Nineq)
+    ccall(finalize_solver_wrapper, Cvoid, (Cint,), Cint(link.Nineq))
     
     link.Nineq = nothing
-    link.dim_hloc = 0
+    link.dim_hloc = Cint(0)
     link.Nsym = nothing
 
     if hasproperty(link, :oldfunc)

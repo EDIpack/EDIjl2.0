@@ -72,3 +72,5 @@ for iloop in 0:100
   end
   
 end
+
+EDIjl2.finalize_solver()
