@@ -1,4 +1,4 @@
-push!(LOAD_PATH, joinpath(@__DIR__, "../EDIjl2/src"))
+push!(LOAD_PATH, joinpath(@__DIR__, "../src"))
 
 using DelimitedFiles
 using EDIjl2
