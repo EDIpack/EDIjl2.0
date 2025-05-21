@@ -1,4 +1,4 @@
-module EDIjl2
+module EDIpack2jl
 
   using Libdl
 
@@ -21,7 +21,7 @@ module EDIjl2
   )
 
 
-  function InitEDIjl(libpath::String)
+  function InitEDIpack2jl(libpath::String)
       lib = try
           Libdl.dlopen(libpath)
       catch e
@@ -144,16 +144,16 @@ module EDIjl2
   # Load shared library
   function find_EDIpack()
       libext = Sys.isapple() ? ".dylib" : ".so"
-      libname = "libedipack2_cbinding" * libext
+      libname = "libedipack_cbindings" * libext
       search_paths = [get(ENV, "EDIPACK_PATH", ""), get(ENV, "LD_LIBRARY_PATH", ""), get(ENV, "DYLD_LIBRARY_PATH", "")]
       for path in split(join(search_paths, ":"), ":")
           libpath = joinpath(path, libname)
           if isfile(libpath)
-              println("EDIpack2 library found at ", libpath)
+              println("EDIpack library found at ", libpath)
               return libpath
           end
       end
-      error("Library loading failed. Check installation of edipack2")
+      error("Library loading failed. Check installation of EDIpack")
   end
 
   include(joinpath(@__DIR__, "func_parse_umatrix.jl"))
@@ -169,7 +169,7 @@ module EDIjl2
   function __init__()
     sleep(1)
     libpath = find_EDIpack()
-    global global_env = InitEDIjl(libpath)
+    global global_env = InitEDIpack2jl(libpath)
   end
 
 end

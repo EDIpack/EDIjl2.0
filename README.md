@@ -1,4 +1,4 @@
-# EDIjl2.0
+# EDIpack2jl
 
 **EDIpack Julia API (experimental).**
 

@@ -1,7 +1,7 @@
 push!(LOAD_PATH, joinpath(@__DIR__, "../src"))
 
 using DelimitedFiles
-using EDIjl2
+using EDIpack2jl
 
 function dens_bethe(x, d)
     root = sqrt(Complex(1 - (x / d)^2))
@@ -14,9 +14,9 @@ wmixing = 0.3
 wband = 1.0
 
 #global variables
-ed = EDIjl2.global_env
+ed = EDIpack2jl.global_env
 
-EDIjl2.read_input("inputED.conf")
+EDIpack2jl.read_input("inputED.conf")
 
 #####################################################
 
@@ -30,8 +30,8 @@ hloc = zeros(ComplexF64, 1, 1, 1, 1)
 Gmats = zeros(ComplexF64, 1, 1, 1, 1,ed.Lmats)
 Delta = zeros(ComplexF64, 1, 1, 1, 1,ed.Lmats)
 
-EDIjl2.set_hloc(hloc)
-global bath = EDIjl2.init_solver()
+EDIpack2jl.set_hloc(hloc)
+global bath = EDIpack2jl.init_solver()
 
 for iloop in 0:100
 
@@ -39,19 +39,19 @@ for iloop in 0:100
   
   bath_old = copy(bath)
   
-  EDIjl2.solve(bath)
+  EDIpack2jl.solve(bath)
   
-  dens = EDIjl2.get_dens()
-  mag = EDIjl2.get_mag()
-  docc = EDIjl2.get_docc()
-  phisc = EDIjl2.get_phi()
+  dens = EDIpack2jl.get_dens()
+  mag = EDIpack2jl.get_mag()
+  docc = EDIpack2jl.get_docc()
+  phisc = EDIpack2jl.get_phi()
   println("Density = ", dens)
   println("Magnetization = ", mag)
   println("Double occupation = ", docc)
   println("Superconductive phi = ", phisc)
   
-  gimp = EDIjl2.get_gimp(axis="m")
-  smats = EDIjl2.get_sigma(axis="m")
+  gimp = EDIpack2jl.get_gimp(axis="m")
+  smats = EDIpack2jl.get_sigma(axis="m")
 
   zeta = wm * im .- smats[1, 1, 1, 1, :]
 
@@ -61,9 +61,9 @@ for iloop in 0:100
   writedlm("Delta_iw.dat", [wm imag.(Delta[1,1,1,1,:]) real.(Delta[1,1,1,1,:])])
 
   bath_old = copy(bath)
-  global bath = EDIjl2.chi2_fitgf(Delta,bath_old)
+  global bath = EDIpack2jl.chi2_fitgf(Delta,bath_old)
 
-  result, converged = EDIjl2.check_convergence(Gmats)
+  result, converged = EDIpack2jl.check_convergence(Gmats)
   global bath = 0.3.*bath + (1.0-0.3).*bath_old
   
   
@@ -73,4 +73,4 @@ for iloop in 0:100
   
 end
 
-EDIjl2.finalize_solver()
+EDIpack2jl.finalize_solver()

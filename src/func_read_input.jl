@@ -4,7 +4,7 @@ using Libdl
 
 function read_input(input_string::String;link::Link=global_env)
     """
-    This function reads from the input file of EDIpack2. If the file does not
+    This function reads from the input file of EDIpack. If the file does not
     exist, a template file is generated with default parameters.
     """
     
