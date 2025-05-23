@@ -8,11 +8,11 @@ function init_solver(;bath::Union{Nothing, Array{Float64, 2}, Array{Float64, 1}}
 
     if isnothing(bath)
         if isnothing(Nb) && isnothing(Nlat)
-            Nb = ccall(dlsym(link.library, :get_bath_dimension), Int, ())
+            Nb = get_bath_dimension()
             bath = zeros(Float64, Nb)
         elseif isnothing(Nb) && !isnothing(Nlat)
             if link.has_ineq
-                Nb = ccall(dlsym(link.library, :get_bath_dimension), Int, ())
+                Nb = get_bath_dimension()
                 bath = zeros(Float64, Nlat, Nb)
             else
                 error("Can't use r-DMFT routines without installing edipack2ineq")

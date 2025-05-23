@@ -7,8 +7,18 @@ function get_bath_dimension(;link::Link=global_env)
     This function returns the correct dimension for the bath to be allocated \
     (for each impurity) given the parameters of the system.
     """
-    # Call the C function using ccall
-    return ccall(dlsym(link.library, :get_bath_dimension), Cint, ())
+
+    if get_bath_type(link) > 2  # replica/general
+        if self.Nsym === nothing
+            error("get_bath_dimension: no replica/general matrix is initialized")
+        else
+            bbathdim = ccall(dlsym(link.library, :get_bath_dimension_symmetries), Cint, (Ptr{Int},), self.Nsym)
+        end
+    else
+        bathdim = ccall(dlsym(link.library, :get_bath_dimension_direct), Cint, ())
+    end
+    return bathdim
+   
 end
 
 
